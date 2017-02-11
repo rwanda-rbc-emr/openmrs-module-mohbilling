@@ -314,6 +314,7 @@ function recalculateTotals() {
 			</tr>			
 		</table>
 	</form>
+	
 	<div style="text-align: right;"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print Payment</a></div>
 	
 </div>

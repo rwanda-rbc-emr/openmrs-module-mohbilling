@@ -53,8 +53,8 @@ $(function(){
 <div>
 <b class="boxHeader">Patient Details</b>
 <table>
-<tr><td>Patient:</td><td>test</td></tr>
-<tr><td>Insurance Policy:</td><td>test</td></tr>
+<tr><td>Patient:</td><td><b>${consommation.beneficiary.patient.personName }(${insurancePolicy.owner.birthdate})</b></td></tr>
+<tr><td>Insurance Policy:</td><td><b>${consommation.beneficiary.policyIdNumber }-${insurancePolicy.insurance.name}</b></td></tr>
 </table>
 </div>
 </div>
@@ -130,7 +130,7 @@ $(function(){
 				<td><input type="text" autocomplete="off" id="refundingDate" name="refundingDate" size="11" onclick="showCalendar(this);" value="<openmrs:formatDate date='${todayDate}' type="string"/>"/></td>
 			    <td></td>
 				<td><b>Refunded Amount</b></td>
-				<td><input type="text" autocomplete="off" id="refundedAmount" name="refundedAmount" size="11" class="numbers" value="${totalRefundAmount }" readonly="readonly"/></td>							
+				<td><input type="text" autocomplete="off" id="refundedAmount" name="refundedAmount" size="11" class="numbers" value="${totalRefundAmount*(100-insurancePolicy.insurance.currentRate.rate)/100 }" readonly="readonly"/></td>							
 			</tr>	
 			 </c:if>
 			

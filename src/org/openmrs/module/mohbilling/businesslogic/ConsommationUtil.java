@@ -100,7 +100,6 @@ public class ConsommationUtil {
 	}
 	public static PatientServiceBill saveBilledItem(PatientServiceBill psb){
 		
-		
 		return  getService().saveBilledItem(psb);
 		
 	}

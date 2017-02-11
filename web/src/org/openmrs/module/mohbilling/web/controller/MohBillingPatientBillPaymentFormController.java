@@ -39,6 +39,7 @@ import org.openmrs.module.mohbilling.service.BillingService;
 import org.openmrs.web.WebConstants;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * @author rbcemr 
@@ -57,11 +58,12 @@ public class MohBillingPatientBillPaymentFormController extends
 		mav.setViewName(getViewName());
 		BillPayment payment = null;
 		
-		if(request.getParameter("refundId")!=null){
+/*		if(request.getParameter("refundId")!=null){
 			PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
-			updatePaymentAfterRefund(request, refund);
-		}
+			//BillPaymentUtil.updatePaymentAfterRefund(request, refund);
+		}*/
 		
+
 		if (request.getParameter("save") != null ){			
 			payment = handleSavePatientBillPayment(request);
 			mav.addObject("payment",payment);
@@ -111,30 +113,75 @@ public class MohBillingPatientBillPaymentFormController extends
 	
 		BillPayment billPayment = null;
 		DateFormat df = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {			
+		try {		
 			Consommation consommation =ConsommationUtil.getConsommation(Integer.parseInt(request.getParameter("consommationId")));
 			PatientBill pb =consommation.getPatientBill();
-				BillPayment bp = new BillPayment();
+				
+			//edit existing payment
+			if(request.getParameter("newAmount")!=null && !request.getParameter("newAmount").equals("")){
+
+				billPayment = BillPaymentUtil.getBillPaymentById(Integer.valueOf(request.getParameter("paymentId")));
+    		BigDecimal newAmount  = new BigDecimal(Double.valueOf(request.getParameter("newAmount")));
+    		billPayment.setVoided(true);
+    		billPayment.setVoidedBy(Context.getAuthenticatedUser());
+    		billPayment.setVoidedDate(new Date());
+    		billPayment.setVoidReason("Typing Error");
+			Context.getService(BillingService.class).saveBillPayment(billPayment);
+			
+			BillPayment cpyPay = new BillPayment();
+			cpyPay.setCollector(billPayment.getCollector());
+			cpyPay.setDateReceived(billPayment.getDateReceived());				
+			cpyPay.setPatientBill(billPayment.getPatientBill());
+			cpyPay.setCreatedDate(billPayment.getCreatedDate());
+			cpyPay.setCreator(billPayment.getCreator());
+			cpyPay.setAmountPaid(newAmount);
+			Context.getService(BillingService.class).saveBillPayment(cpyPay);
+			
+			 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(billPayment);
+			
+			for (PaidServiceBill oldPaidSb : paidItems) {
+				PaidServiceBill newPaidService = new PaidServiceBill();
+				newPaidService.setBillItem(oldPaidSb.getBillItem());			
+				newPaidService.setPaidQty(oldPaidSb.getPaidQty());
+				newPaidService.setBillPayment(cpyPay);
+				newPaidService.setCreator(oldPaidSb.getCreator());
+				newPaidService.setCreatedDate(oldPaidSb.getCreatedDate());			
+				newPaidService.setVoided(false);
+				BillPaymentUtil.createPaidServiceBill(newPaidService);
+			}
+			
+			
+//			if (cpyPay instanceof CashPayment)
+//				cpyPay = PatientBillUtil.createCashPayment((CashPayment) cpyPay);
+//			else
+//				cpyPay = PatientBillUtil.createDepositPayment((DepositPayment) cpyPay);
+//			
+//			createPaidServiceBill(request, consommation, cpyPay);
+    		}
+		
+
 				/**
 				 * We need to add both Patient Due amount and amount paid by
 				 * third part
 				 */
 				
-				bp.setCollector(Context.getAuthenticatedUser());
-				bp.setDateReceived(Context.getDateFormat().parse(
+			else{
+				billPayment=new BillPayment();
+				billPayment.setCollector(Context.getAuthenticatedUser());
+				billPayment.setDateReceived(Context.getDateFormat().parse(
 						request.getParameter("dateBillReceived")));				
-				bp.setPatientBill(pb);
-				bp.setCreatedDate(new Date());
-				bp.setCreator(Context.getAuthenticatedUser());					
+				billPayment.setPatientBill(pb);
+				billPayment.setCreatedDate(new Date());
+				billPayment.setCreator(Context.getAuthenticatedUser());					
 				//bp = PatientBillUtil.createBillPayment(bp);
 				
 				//mark as paid all  selected items for payment purpose
 				
 				if(request.getParameter("cashPayment")!=null){
-					bp.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
+					billPayment.setAmountPaid(BigDecimal.valueOf(Double.parseDouble(request
 							.getParameter("receivedCash"))));
 					//create cashPayment
-					CashPayment cp =new CashPayment(bp);	
+					CashPayment cp =new CashPayment(billPayment);	
 					setParams(cp, Context.getAuthenticatedUser(), false, new Date());
 					
 					cp =PatientBillUtil.createCashPayment(cp);
@@ -155,8 +202,8 @@ public class MohBillingPatientBillPaymentFormController extends
 					//create transaction
 					Transaction transaction = PatientAccountUtil.createTransaction(deductedAmount.negate(), new Date(), new Date(), Context.getAuthenticatedUser(), patientAccount, "Bill Payment", Context.getAuthenticatedUser());
 					
-					bp.setAmountPaid(deductedAmount);
-					DepositPayment dp = new DepositPayment(bp);
+					billPayment.setAmountPaid(deductedAmount);
+					DepositPayment dp = new DepositPayment(billPayment);
 
 					setParams(dp, Context.getAuthenticatedUser(), false, new Date());
 					dp.setTransaction(transaction);
@@ -175,6 +222,7 @@ public class MohBillingPatientBillPaymentFormController extends
 								WebConstants.OPENMRS_ERROR_ATTR,
 								"The Bill Payment is not saved. No sufficient balance !");
 				} 
+			}
 
 				return billPayment;
 		} catch (Exception e) {
@@ -187,36 +235,7 @@ public class MohBillingPatientBillPaymentFormController extends
 		}
 	}
 	
-	public BillPayment updatePaymentAfterRefund(HttpServletRequest request,PaymentRefund refund){
-		Set<PaidServiceBillRefund> refundedItems = refund.getRefundedItems();
-		BillPayment paymentCopy = new BillPayment();
-		BigDecimal remainingQty = null;
-		for (PaidServiceBillRefund refundedItem : refundedItems) {
-			remainingQty = refundedItem.getPaidItem().getPaidQty().subtract(refundedItem.getRefQuantity());
-			
-			//if all qty have been refunded, no reason to copy the paidItem
-			if(remainingQty.compareTo(BigDecimal.ZERO)>0){
-			PaidServiceBill refundedItemCopy = new PaidServiceBill();	
-			refundedItemCopy.setPaidQty(remainingQty);
-			refundedItemCopy.setBillPayment(refund.getBillPayment());
-			refundedItemCopy.setCreator(refundedItem.getCreator());
-			refundedItemCopy.setCreatedDate(refundedItem.getCreatedDate());			
-			refundedItemCopy.setVoided(refundedItem.getVoided());
-			refundedItemCopy.setBillItem(refundedItem.getPaidItem().getBillItem());
-			BillPaymentUtil.createPaidServiceBill(refundedItemCopy);
-			}
-			
-			//void previous paidItem
-			PaidServiceBill paidItem = refundedItem.getPaidItem();
-			paidItem.setVoided(true);
-			paidItem.setVoidedBy(Context.getAuthenticatedUser());
-			paidItem.setVoidedDate(new Date());
-			paidItem.setVoidReason("Refunded Reason: "+refundedItem.getRefundReason());
-			BillPaymentUtil.createPaidServiceBill(paidItem);
-		}
-		return paymentCopy;
-		
-	}
+
 	public void createPaidServiceBill(HttpServletRequest request,Consommation consommation, BillPayment bp){
   
 		Map<String, String[]> parameterMap = request.getParameterMap();			

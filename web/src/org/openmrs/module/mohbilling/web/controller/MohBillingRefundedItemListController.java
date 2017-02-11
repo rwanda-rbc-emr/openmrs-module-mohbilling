@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
+import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
@@ -35,6 +36,7 @@ public class MohBillingRefundedItemListController extends
 		  PaymentRefund refund = PaymentRefundUtil.getRefundById(Integer.valueOf(request.getParameter("refundId")));
 		  mav.addObject("refund", refund);
 		  
+		  mav.addObject("consommation", ConsommationUtil.getConsommationByPatientBill(refund.getBillPayment().getPatientBill()));
 	  }
   	  
 		return mav;

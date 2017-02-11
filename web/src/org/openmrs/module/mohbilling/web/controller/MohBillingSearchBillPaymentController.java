@@ -17,14 +17,19 @@ import org.openmrs.api.context.Context;
 import org.openmrs.module.mohbilling.businesslogic.BillPaymentUtil;
 import org.openmrs.module.mohbilling.businesslogic.ConsommationUtil;
 import org.openmrs.module.mohbilling.businesslogic.FileExporter;
+import org.openmrs.module.mohbilling.businesslogic.PatientBillUtil;
 import org.openmrs.module.mohbilling.businesslogic.PaymentRefundUtil;
 import org.openmrs.module.mohbilling.model.BillPayment;
+import org.openmrs.module.mohbilling.model.CashPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
+import org.openmrs.module.mohbilling.model.DepositPayment;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
+import org.openmrs.module.mohbilling.service.BillingService;
 import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.ParameterizableViewController;
+import org.springframework.web.servlet.view.RedirectView;
 
 /**
  * @author EMR@RBC
@@ -87,7 +92,12 @@ public class MohBillingSearchBillPaymentController extends	ParameterizableViewCo
            	   FileExporter exp = new FileExporter();
            	   exp.printPayment(request, response, payment, consommation, "receipt.pdf");
               }
-  
+            String editPayStr = "";
+    		if(request.getParameter("editPay")!=null){
+    			editPayStr = request.getParameter("editPay");
+    			mav.addObject("editPayStr", editPayStr);
+    		}
+    		
           }
     	  
 
