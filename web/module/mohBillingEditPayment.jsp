@@ -7,9 +7,10 @@
 </c:if>
 <br/>
 <c:if test="${not payment.voided }">
-<b class="boxHeader">Bill Payment</b>
+<b class="boxHeader">Bill Payment(Amount Paid)</b>
 
 <div class="box" style="clear: both;">
+<form action="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${param.ipCardNumber}&save=true" method="post" id="formSaveBillPayment">
 	<table width="99%">
 		<tr>
 			<th class="columnHeader"></th>
@@ -21,18 +22,9 @@
 		</tr>
 		<c:if test="${!empty paidItems}">
 				<tr>
-					<td class="columnHeader">
-					<a href="patientBillPayment.form?consommationId=${consommation.consommationId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">View</a>|
-					<a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&editPay=true">Edit</a>
-					</td>
 					<th class="columnHeader" style="font-size: 1em; font-weight: bold;" colspan="4"><center>Date: ${consommation.createdDate}, Total Amount : ${payment.amountPaid} Rwf, Insurance : ${consommation.beneficiary.insurancePolicy.insurance.name}, Policy Card No. : ${consommation.beneficiary.policyIdNumber}</center></th>
-					
-					<openmrs:hasPrivilege privilege="Submit a refund">
-					<td class="columnHeader">						
-							<a href="paymentRefund.form?paymentId=${payment.billPaymentId}&ipCardNumber=${consommation.beneficiary.policyIdNumber}">Refund</a>
-					</td>
-					</openmrs:hasPrivilege>
-					
+					<th class="columnHeader"></th>
+					<th class="columnHeader"></th>
 				</tr>
        </c:if>
        
@@ -53,6 +45,19 @@
 				</tr>
 			</c:forEach> 
 	      </c:if>
+	      <tr style="font-size: 1em">
+				<td><div style="text-align: right;"><b>Enter New Amount</b></div></td>
+				<td><input type="text" name="newAmount"/></td>
+				<td><div style="text-align: right;"><b>Amount Paid</b></div></td>
+				<td><div class="amount">${payment.amountPaid}</div></td>	
+				<td><input type="hidden" name="paymentId" value="${payment.billPaymentId }"/></td>	
+			</tr>
+			<tr style="font-size: 1.2em">
+				
+					<td colspan="2"><input type="submit"  value="Save" style="min-width: 200px;" class="submitBtn"/></td>
+				
+			 <td colspan="3"></td>
 	</table>
+	</form>
 </div>
 </c:if> 

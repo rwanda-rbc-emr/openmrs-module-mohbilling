@@ -12,6 +12,7 @@
 		</tr>	
 		<c:if test="${empty payments}"><tr><td colspan="9"><center>No payments found !</center></td></tr></c:if>
 		<c:forEach items="${payments}" var="payment" varStatus="status">
+		   <c:if test="${not payment.voided}">
 			<tr>				
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${status.count}</td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}">${payment.billPaymentId}</td>				
@@ -20,6 +21,7 @@
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}">View</a></td>
 				<td class="rowValue ${(status.count%2!=0)?'even':''}"><a href="searchBillPayment.form?paymentId=${payment.billPaymentId}&consommationId=${consommation.consommationId}&print=true">Print</a></td>
 			</tr>
+			</c:if>
 		</c:forEach>
 	</table>
 </div>

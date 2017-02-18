@@ -7,11 +7,9 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-
 import org.openmrs.module.mohbilling.model.BillPayment;
 import org.openmrs.module.mohbilling.model.Consommation;
 import org.openmrs.module.mohbilling.model.PaidServiceBill;
-import org.openmrs.module.mohbilling.model.PaidServiceBillRefund;
 import org.openmrs.module.mohbilling.model.PatientServiceBill;
 import org.openmrs.module.mohbilling.model.PaymentRefund;
 import org.openmrs.module.mohbilling.service.BillingService;
@@ -142,6 +140,41 @@ public class BillPaymentUtil {
 		 return totalPaid;
 	}
 	
-	
-
+	public static BigDecimal getAmountRefunded(BillPayment bp){
+		BigDecimal refundedAmount=new BigDecimal(0);
+			for (PaymentRefund r : getRefundsByBillPayment(bp)) {
+				refundedAmount=refundedAmount.add(r.getRefundedAmount());
+			}
+		return refundedAmount;
+	}
+/*	public static BillPayment updatePaymentAfterRefund(HttpServletRequest request,PaymentRefund refund){
+		Set<PaidServiceBillRefund> refundedItems = refund.getRefundedItems();
+		BillPayment paymentCopy = new BillPayment();
+		BigDecimal remainingQty = null;
+		for (PaidServiceBillRefund refundedItem : refundedItems) {
+			remainingQty = refundedItem.getPaidItem().getPaidQty().subtract(refundedItem.getRefQuantity());
+			
+			//if all qty have been refunded, no reason to copy the paidItem
+			if(remainingQty.compareTo(BigDecimal.ZERO)>0){
+			PaidServiceBill refundedItemCopy = new PaidServiceBill();	
+			refundedItemCopy.setPaidQty(remainingQty);
+			refundedItemCopy.setBillPayment(refund.getBillPayment());
+			refundedItemCopy.setCreator(refundedItem.getCreator());
+			refundedItemCopy.setCreatedDate(refundedItem.getCreatedDate());			
+			refundedItemCopy.setVoided(refundedItem.getVoided());
+			refundedItemCopy.setBillItem(refundedItem.getPaidItem().getBillItem());
+			BillPaymentUtil.createPaidServiceBill(refundedItemCopy);
+			}
+			
+			//void previous paidItem
+			PaidServiceBill paidItem = refundedItem.getPaidItem();
+			paidItem.setVoided(true);
+			paidItem.setVoidedBy(Context.getAuthenticatedUser());
+			paidItem.setVoidedDate(new Date());
+			paidItem.setVoidReason("Refunded Reason: "+refundedItem.getRefundReason());
+			BillPaymentUtil.createPaidServiceBill(paidItem);
+		}
+		return paymentCopy;
+		
+	}*/
 }

@@ -34,14 +34,13 @@ public class MohBillingTagUtil {
 		else {
 			try {
 				Consommation consomm = Context.getService(BillingService.class).getConsommation(consommationId);
-				
 				PatientBill pb = consomm.getPatientBill();
 			     Set<BillPayment> allPayments =pb.getPayments();
 			     if (allPayments !=null) {
 			    	 for (BillPayment billPayment : allPayments) {
-			    		 
-			    		 amountPaid = amountPaid + billPayment.getAmountPaid().longValue();			    		 
-						
+			    		 System.out.println("DDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD "+billPayment.getBillPaymentId()+">>>>>"+billPayment.getVoided());
+			    		 if(!billPayment.isVoided())
+			    		 amountPaid = amountPaid + billPayment.getAmountPaid().longValue();	
 					}
 					
 				}
@@ -90,9 +89,10 @@ public class MohBillingTagUtil {
 				}
 	
 				for (BillPayment bp : consomm.getPatientBill().getPayments()) {
+					if(!bp.isVoided())
 					amountPaid = amountPaid + bp.getAmountPaid().doubleValue();
+					
 				}
-
 				if (consomm.getBeneficiary().getInsurancePolicy().getThirdParty() == null) {
 					amountNotPaid = amountDueByPatient - amountPaid;
 
@@ -168,6 +168,7 @@ public class MohBillingTagUtil {
 		Consommation c = ConsommationUtil.getConsommation(consommationId);
 		BigDecimal totalPaid = new BigDecimal(0);
 		for (BillPayment pay : c.getPatientBill().getPayments()) {
+			if(!pay.isVoided())
 			totalPaid=totalPaid.add(pay.getAmountPaid());
 		}
 		return ""+totalPaid;
