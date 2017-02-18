@@ -138,8 +138,9 @@ public class MohBillingPatientBillPaymentFormController extends
 			Context.getService(BillingService.class).saveBillPayment(cpyPay);
 			
 			 List<PaidServiceBill> paidItems = BillPaymentUtil.getPaidItemsByBillPayment(billPayment);
-			
-			for (PaidServiceBill oldPaidSb : paidItems) {
+			 
+			//recreate services which has been paid
+			 for (PaidServiceBill oldPaidSb : paidItems) {
 				PaidServiceBill newPaidService = new PaidServiceBill();
 				newPaidService.setBillItem(oldPaidSb.getBillItem());			
 				newPaidService.setPaidQty(oldPaidSb.getPaidQty());
@@ -150,13 +151,14 @@ public class MohBillingPatientBillPaymentFormController extends
 				BillPaymentUtil.createPaidServiceBill(newPaidService);
 			}
 			
-			
-//			if (cpyPay instanceof CashPayment)
-//				cpyPay = PatientBillUtil.createCashPayment((CashPayment) cpyPay);
-//			else
-//				cpyPay = PatientBillUtil.createDepositPayment((DepositPayment) cpyPay);
-//			
-//			createPaidServiceBill(request, consommation, cpyPay);
+			//void services which has been paid before
+			for (PaidServiceBill oldPaidSb : paidItems) {
+				oldPaidSb.setVoided(true);
+				oldPaidSb.setVoidedBy(Context.getAuthenticatedUser());
+				oldPaidSb.setVoidedDate(new Date());
+				oldPaidSb.setVoidReason("Typing Error");
+				BillPaymentUtil.createPaidServiceBill(oldPaidSb);
+			}
     		}
 		
 
