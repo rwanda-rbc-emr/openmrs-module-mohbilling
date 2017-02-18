@@ -116,7 +116,9 @@ public class BillPaymentUtil {
 		List<PaidServiceBill> paidItems = new ArrayList<PaidServiceBill>();
 		for (BillPayment bp : payments) {
 			//paidItems = new ArrayList<PaidServiceBill>();
-			Consommation consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
+			Consommation consommation = null;
+			if(!bp.getVoided())
+			consommation = ConsommationUtil.getConsommationByPatientBill(bp.getPatientBill());
 			 for (PatientServiceBill psb : consommation.getBillItems()) {
      			   PaidServiceBill paidSb = new PaidServiceBill();
      			   paidSb.setPaidQty(psb.getQuantity());
@@ -135,6 +137,7 @@ public class BillPaymentUtil {
 	public static BigDecimal getTotalPaid(List<BillPayment> payments){
 		BigDecimal totalPaid = new BigDecimal(0);
 		 for (BillPayment payment : payments) {
+			 if(payment.getVoidReason()==null)
 			 totalPaid=totalPaid.add(payment.getAmountPaid());
 			}
 		 return totalPaid;

@@ -82,10 +82,8 @@ public class MohBillingCashierReportController extends
 			 Date endDate = (Date) params[1];
 			 User collector =  (User) params[2];
 
-			 
-			 BigDecimal totalReceivedAmount = new BigDecimal(0);
 
-			 try {
+			// try {
 				  
 					 List<BillPayment> payments = BillPaymentUtil.getAllPaymentByDatesAndCollector(startDate, endDate,collector);
 					 
@@ -122,16 +120,19 @@ public class MohBillingCashierReportController extends
 					}
 				}
 	 			mav.addObject("totalReceivedAmount", BillPaymentUtil.getTotalPaid(payments));
+	 			
+	 			log.info("YYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYAAA "+BillPaymentUtil.getTotalPaid(payments));
+	 			
 				mav.addObject("paidServiceRevenues", paidServiceRevenues);
 				
 				request.getSession().setAttribute("paidServiceRevenues" , paidServiceRevenues);
 				request.getSession().setAttribute("totalReceivedAmount", BillPaymentUtil.getTotalPaid(payments));
 				
-			} catch (Exception e) {
+		/*	} catch (Exception e) {
 				request.getSession().setAttribute(WebConstants.OPENMRS_ERROR_ATTR,
 						"No payment found !");
 				log.info(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> "+e.getMessage());
-			}
+			}*/
 
 	}	
 		mav.addObject("insurances",InsuranceUtil.getAllInsurances());
